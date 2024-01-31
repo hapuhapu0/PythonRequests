@@ -10,11 +10,47 @@ class siteParse:
         else:
             print(f"Successful code: {self.site.status_code}")
     
-    def getCompanyName(self) -> list:
-        SiteSource = self.site.text
-        self.ParseSource = BeautifulSoup(SiteSource, "html.parser")
-        print(self.ParseSource.select("#content > div.site-wrapper > div > div > div.bsj-template__b > ul.jobs-list-items > li:nth-child(1) > div > div.bjs-jlid__header > div > h4 > a"))
+    def getSource(self) -> str:
+        return self.site.text
+
+    def bs4Parser(self, text: str, select: str, parser: str  = "html.parser") -> str:
+        # html 파싱초기화(?)
+        ParseSource = BeautifulSoup(text, parser)
+
+        # 그룹 나누기
+        Group = ParseSource.select(select)
+
+        # 특정클래스 값들 가져오기
+        Result = ParseSource.find_all("h4", "bjs-jlid__h")
+
+        # 리스트 초기화
+        parsed_results = list()
+        
+        for result in Result:
+            a_tag = result.find('a')
+            if a_tag:
+                href = a_tag['href']
+                text = a_tag.text.strip()
+                parsed_results.append({'href': href, 'text': text})
+
+        # 리턴
+        return parsed_results
 
 
-Site = siteParse("https://berlinstartupjobs.com/engineering/")
-Site.getCompanyName()
+
+def main() -> None:
+    # 파싱시작
+    Site = siteParse("https://berlinstartupjobs.com/skill-areas/javascript/")
+
+    # 사이트 소스얻기
+    SiteSource = Site.getSource()
+
+    # 컨테인 
+    Result = Site.bs4Parser(SiteSource, "#content > div.site-wrapper > div > div > div.bsj-template__b > ul.jobs-list-items")
+    
+    print(Result)
+
+
+
+if (__name__ == "__main__"):
+    main()
